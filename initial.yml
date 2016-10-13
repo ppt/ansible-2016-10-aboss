@@ -1,0 +1,57 @@
+---
+- hosts: all
+  gather_facts: no
+  become: yes
+  tasks:
+  - name: install python
+    raw: apt-get -y install python-simplejson
+  - name: add user to sudoer no password
+    lineinfile:
+      dest: /etc/sudoers
+      state: present
+      regexp: "^{{ ansible_user}}"
+      line: "{{ ansible_user }} ALL=(ALL) NOPASSWD: ALL"
+  - name: copy key to server
+    authorized_key:
+      user: jane
+      key: "{{ lookup('file', '/Users/praphan/.ssh/id_rsa.pub') }}"
+  - name: set host name to /etc/hostname
+    hostname:
+      name: "{{ inventory_hostname }}"
+  - name: add host name to /etc/hosts
+    lineinfile:
+      dest: /etc/hosts
+      state: present
+      regexp: "^127.0.0.1 {{ inventory_hostname }}"
+      line: "127.0.0.1 {{ inventory_hostname }}"
+  - name: install docker
+    apt:
+      name: docker.io
+      update_cache: yes
+  - name: add user to docker group
+    user:
+      name: "{{ ansible_user }}"
+      groups: docker
+      append: yes
+  - name: create new user ppt
+    user:
+      name: ppt
+      password: "{{ 'p' |password_hash('sha512') }}"
+      shell: /bin/bash
+      groups: docker,sudo
+  - name: add ppt to sudoer no password
+    lineinfile:
+      dest: /etc/sudoers
+      state: present
+      regexp: '^ppt'
+      line: 'ppt ALL=(ALL) NOPASSWD: ALL'
+  - name: copy key to ppt
+    authorized_key:
+      user: ppt
+      key: "{{ lookup('file', '/Users/praphan/.ssh/id_rsa.pub') }}"
+  - name: add ppt to sudoer no password
+    lineinfile:
+      dest: /etc/sudoers
+      state: present
+      regexp: '^ppt'
+      line: 'ppt ALL=(ALL) NOPASSWD: ALL'

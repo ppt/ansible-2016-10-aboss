@@ -1,0 +1,1 @@
+ubuntu1 ansible_user=jane ansible_ssh_pass=password ansible_host=127.0.0.1 ansible_port=2222
